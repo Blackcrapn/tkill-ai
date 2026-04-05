@@ -5,7 +5,7 @@ mod audio;
 mod ai;
 
 use iced::{
-    Application, Command, Element, Length, Settings, Theme,
+    Application, Command, Element, Length, Settings, Theme, executor,
     widget::{Column, Container, TextInput, Button, Text, Row, Space, container},
     window,
 };
@@ -77,7 +77,7 @@ impl App {
 }
 
 impl Application for App {
-    type Executor = iced::executor::Tokio;   // ✅ правильный экзекутор для tokio
+    type Executor = executor::Tokio;   // ✅ теперь executor импортирован
     type Message = Message;
     type Theme = Theme;
     type Flags = ();
