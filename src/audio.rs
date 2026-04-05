@@ -30,18 +30,20 @@ fn record_audio(output_path: &std::path::Path) -> Result<(), String> {
         sample_format: hound::SampleFormat::Int,
     };
 
-    let writer = Arc::new(Mutex::new(
+    let writer = Arc::new(Mutex::new(Some(
         WavWriter::create(output_path, spec).map_err(|e| format!("Ошибка создания WAV: {}", e))?
-    ));
+    )));
 
     let writer_clone = writer.clone();
     let stream = device.build_input_stream(
         &config.into(),
         move |data: &[f32], _: &cpal::InputCallbackInfo| {
-            let mut w = writer_clone.lock().unwrap();
-            for &sample in data {
-                let amp = (sample * i16::MAX as f32) as i16;
-                let _ = w.write_sample(amp);
+            let mut w_opt = writer_clone.lock().unwrap();
+            if let Some(w) = w_opt.as_mut() {
+                for &sample in data {
+                    let amp = (sample * i16::MAX as f32) as i16;
+                    let _ = w.write_sample(amp);
+                }
             }
         },
         move |err| eprintln!("Ошибка записи: {}", err),
@@ -52,10 +54,12 @@ fn record_audio(output_path: &std::path::Path) -> Result<(), String> {
     println!("Запись... Говорите (5 секунд)");
     thread::sleep(Duration::from_secs(5));
     drop(stream);
-    
+
     // Извлекаем WavWriter из Mutex и финализируем
-    let writer_inner = writer.lock().unwrap();
-    writer_inner.finalize().map_err(|e| format!("Ошибка сохранения WAV: {}", e))?;
+    let writer_opt = writer.lock().unwrap().take();
+    if let Some(writer_inner) = writer_opt {
+        writer_inner.finalize().map_err(|e| format!("Ошибка сохранения WAV: {}", e))?;
+    }
     Ok(())
 }
 
