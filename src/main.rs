@@ -5,9 +5,9 @@ mod audio;
 mod ai;
 
 use iced::{
-    Application, Command, Element, Length, Settings, Theme, executor,
+    Application, Command, Element, Length, Settings, Theme,
     widget::{Column, Container, TextInput, Button, Text, Row, Space, container},
-    window,
+    window, executor::Tokio,
 };
 use iced::keyboard::Key;
 use std::sync::Arc;
@@ -77,7 +77,7 @@ impl App {
 }
 
 impl Application for App {
-    type Executor = executor::Tokio;   // ✅ теперь executor импортирован
+    type Executor = Tokio;   // ✅ импортирован из iced::executor::Tokio
     type Message = Message;
     type Theme = Theme;
     type Flags = ();
