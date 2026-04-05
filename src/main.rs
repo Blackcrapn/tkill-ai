@@ -171,7 +171,7 @@ impl Application for App {
                 Command::none()
             }
             Message::ConfirmInstall(pkg) => {
-                self.pending_install = Some(pkg);
+                self.pending_install = Some(pkg.clone());
                 self.output = format!("❓ Установить пакет '{}'? (Да/Нет)", pkg);
                 Command::none()
             }
@@ -181,7 +181,10 @@ impl Application for App {
                         self.loading = true;
                         self.output = format!("📦 Устанавливаю {}...", pkg);
                         let pkg_clone = pkg.clone();
-                        return Command::perform(actions::install_package(&pkg_clone), Message::InstallResult);
+                        return Command::perform(
+                            async move { actions::install_package(&pkg_clone).await },
+                            Message::InstallResult
+                        );
                     } else {
                         self.output = "❌ Установка отменена.".to_string();
                     }
@@ -193,12 +196,14 @@ impl Application for App {
                 match res {
                     Ok(msg) => {
                         self.output = format!("✅ {}", msg);
-                        if let Some(pkg) = &self.pending_install {
-                            let pkg = pkg.clone();
-                            self.pending_install = None;
+                        if let Some(pkg) = self.pending_install.take() {
                             self.loading = true;
                             self.output = format!("🚀 Запускаю {}...", pkg);
-                            return Command::perform(actions::launch_app(&pkg), Message::ToolExecuted);
+                            let pkg_clone = pkg.clone();
+                            return Command::perform(
+                                async move { actions::launch_app(&pkg_clone).await },
+                                Message::ToolExecuted
+                            );
                         }
                     }
                     Err(e) => {
@@ -230,7 +235,7 @@ impl Application for App {
 
         let output_text = Text::new(&self.output)
             .size(16)
-            .color(iced::Color::from_rgb(0.8, 0.8, 0.8));
+            .style(iced::theme::Text::Color(iced::Color::from_rgb(0.8, 0.8, 0.8)));
 
         let row = Row::with_children(vec![
             input_field.into(),
@@ -250,8 +255,8 @@ impl Application for App {
         .width(Length::Fill);
 
         let container = Container::new(content)
-            .width(Length::Units(800))
-            .height(Length::Units(120))
+            .width(Length::Fixed(800.0))
+            .height(Length::Fixed(120.0))
             .center_x()
             .center_y()
             .style(iced::theme::Container::Custom(Box::new(GlassStyle)));
@@ -282,10 +287,13 @@ impl container::StyleSheet for GlassStyle {
     fn appearance(&self, _style: &Self::Style) -> container::Appearance {
         container::Appearance {
             background: Some(iced::Background::Color(iced::Color::from_rgba(0.1, 0.2, 0.5, 0.7))),
-            border_radius: 15.0.into(),
-            border_width: 1.0,
-            border_color: iced::Color::from_rgba(1.0, 1.0, 1.0, 0.3),
-            ..Default::default()
+            border: iced::Border {
+                radius: 15.0.into(),
+                width: 1.0,
+                color: iced::Color::from_rgba(1.0, 1.0, 1.0, 0.3),
+            },
+            shadow: iced::Shadow::default(),
+            text_color: None,
         }
     }
 }
