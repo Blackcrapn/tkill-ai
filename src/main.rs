@@ -7,10 +7,9 @@ mod ai;
 use iced::{
     Application, Command, Element, Length, Settings, Theme,
     widget::{Column, Container, TextInput, Button, Text, Row, Space, container},
-    window, keyboard, event,
+    window,
 };
 use iced::keyboard::Key;
-use iced::event::Event;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
@@ -277,11 +276,11 @@ impl Application for App {
 
 struct GlassStyle;
 
-impl iced::container::StyleSheet for GlassStyle {
+impl container::StyleSheet for GlassStyle {
     type Style = Theme;
 
-    fn appearance(&self, _style: &Self::Style) -> iced::container::Appearance {
-        iced::container::Appearance {
+    fn appearance(&self, _style: &Self::Style) -> container::Appearance {
+        container::Appearance {
             background: Some(iced::Background::Color(iced::Color::from_rgba(0.1, 0.2, 0.5, 0.7))),
             border_radius: 15.0.into(),
             border_width: 1.0,
