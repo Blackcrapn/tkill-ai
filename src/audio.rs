@@ -1,7 +1,6 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use hound::{WavSpec, WavWriter};
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 use tempfile::NamedTempFile;
@@ -31,16 +30,18 @@ fn record_audio(output_path: &std::path::Path) -> Result<(), String> {
         sample_format: hound::SampleFormat::Int,
     };
 
-    let mut writer = WavWriter::create(output_path, spec).map_err(|e| format!("Ошибка создания WAV: {}", e))?;
-    let recording = Arc::new(AtomicBool::new(true));
-    let recording_clone = recording.clone();
+    let writer = Arc::new(Mutex::new(
+        WavWriter::create(output_path, spec).map_err(|e| format!("Ошибка создания WAV: {}", e))?
+    ));
 
+    let writer_clone = writer.clone();
     let stream = device.build_input_stream(
         &config.into(),
         move |data: &[f32], _: &cpal::InputCallbackInfo| {
+            let mut w = writer_clone.lock().unwrap();
             for &sample in data {
                 let amp = (sample * i16::MAX as f32) as i16;
-                let _ = writer.write_sample(amp);
+                let _ = w.write_sample(amp);
             }
         },
         move |err| eprintln!("Ошибка записи: {}", err),
@@ -50,9 +51,8 @@ fn record_audio(output_path: &std::path::Path) -> Result<(), String> {
     stream.play().map_err(|e| format!("Ошибка запуска записи: {}", e))?;
     println!("Запись... Говорите (5 секунд)");
     thread::sleep(Duration::from_secs(5));
-    recording_clone.store(false, Ordering::Relaxed);
     drop(stream);
-    writer.finalize().map_err(|e| format!("Ошибка сохранения WAV: {}", e))?;
+    writer.lock().unwrap().finalize().map_err(|e| format!("Ошибка сохранения WAV: {}", e))?;
     Ok(())
 }
 
