@@ -52,7 +52,10 @@ fn record_audio(output_path: &std::path::Path) -> Result<(), String> {
     println!("Запись... Говорите (5 секунд)");
     thread::sleep(Duration::from_secs(5));
     drop(stream);
-    writer.lock().unwrap().finalize().map_err(|e| format!("Ошибка сохранения WAV: {}", e))?;
+    
+    // Извлекаем WavWriter из Mutex и финализируем
+    let writer_inner = writer.lock().unwrap();
+    writer_inner.finalize().map_err(|e| format!("Ошибка сохранения WAV: {}", e))?;
     Ok(())
 }
 
