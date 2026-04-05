@@ -1,0 +1,22 @@
+[package]
+name = "tkill-ai"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+iced = "0.12"
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.11", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+cpal = "0.15"
+hound = "3.5"
+rodio = "0.17"
+which = "6.0"
+regex = "1.10"
+lazy_static = "1.4"
+futures = "0.3"
+tempfile = "3.3"
+dirs = "5.0"          # для получения домашней директории
+urlencoding = "2.1"   # для кодирования URL в search_web
