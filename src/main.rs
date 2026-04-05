@@ -7,7 +7,7 @@ mod ai;
 use iced::{
     Application, Command, Element, Length, Settings, Theme,
     widget::{Column, Container, TextInput, Button, Text, Row, Space, container},
-    window, executor,
+    window,
 };
 use iced::keyboard::Key;
 use std::sync::Arc;
@@ -77,9 +77,9 @@ impl App {
 }
 
 impl Application for App {
+    type Executor = iced::executor::Tokio;   // ✅ правильный экзекутор для tokio
     type Message = Message;
     type Theme = Theme;
-    type Executor = executor::Tokio;   // ← правильный executor
     type Flags = ();
 
     fn new(_flags: ()) -> (Self, Command<Message>) {
