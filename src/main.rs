@@ -5,7 +5,7 @@ mod audio;
 mod ai;
 
 use iced::{
-    Application, Command, Element, Length, Settings, Theme,
+    Application, Command, Element, Length, Settings, Theme, executor,
     widget::{Column, Container, TextInput, Button, Text, Row, Space, container},
     window,
 };
@@ -79,7 +79,7 @@ impl App {
 impl Application for App {
     type Message = Message;
     type Theme = Theme;
-    type Executor = iced::executor::Default;
+    type Executor = executor::tokio::Tokio;   // ← ключевое изменение
     type Flags = ();
 
     fn new(_flags: ()) -> (Self, Command<Message>) {
